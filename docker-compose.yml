@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  # ── Pipeline service: runs quality analysis + language detection ──────────
+  pipeline:
+    build: .
+    container_name: voicedatacurator-pipeline
+    volumes:
+      - ./data:/app/data # Mount raw audio input
+      - ./output:/app/output # Persist accepted files + manifest
+      - ./rejected:/app/rejected # Persist rejected files
+      - ./logs:/app/logs # Persist run logs
+    command: >
+      python main.py
+        --input ./data/raw
+        --output ./output
+        --config ./config.yaml
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  # ── Dashboard service: Streamlit web UI ───────────────────────────────────
+  dashboard:
+    build: .
+    container_name: voicedatacurator-dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./output:/app/output # Reads dataset_manifest.csv
+      - ./logs:/app/logs
+    command: streamlit run dashboard.py --server.port=8501 --server.address=0.0.0.0
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - pipeline

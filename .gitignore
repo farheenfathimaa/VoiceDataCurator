@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Project runtime directories
+data/
+output/
+rejected/
+logs/
+!data/.gitkeep
+!output/.gitkeep
+!rejected/.gitkeep
+!logs/.gitkeep
+
+# Whisper model cache
+~/.cache/whisper/
+*.pt
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Docker
+.dockerignore
+
+# Distribution / packaging
+htmlcov/
+.hypothesis/

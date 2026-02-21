@@ -1,0 +1,32 @@
+# VoiceDataCurator — Python Dependencies
+# Install with: pip install -r requirements.txt
+#
+# Note: openai-whisper requires ffmpeg installed on your system.
+# Windows: choco install ffmpeg   OR   winget install Gyan.FFmpeg
+# Mac:     brew install ffmpeg
+# Linux:   sudo apt install ffmpeg
+
+# Audio processing
+librosa==0.10.2
+soundfile==0.12.1
+numpy>=1.23.0,<2.0.0
+
+# Speech recognition & language detection
+openai-whisper==20231117
+
+# Data manipulation
+pandas>=2.0.0
+
+# Dashboard
+streamlit>=1.32.0
+plotly>=5.18.0
+
+# CLI utilities
+tqdm>=4.66.0
+pyyaml>=6.0.1
+
+# Torch (required by Whisper — CPU version; swap for CUDA if GPU available)
+torch>=2.1.0
+
+# Optional: for faster audio loading
+audioread>=3.0.0

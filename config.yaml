@@ -1,0 +1,42 @@
+# VoiceDataCurator Configuration
+# Edit these thresholds to tune your pipeline's filtering behavior.
+
+audio:
+  min_duration_sec: 1.0         # Reject clips shorter than this (seconds)
+  max_duration_sec: 30.0        # Reject clips longer than this (seconds)
+  target_sample_rate: 16000     # Expected sample rate (Hz); mismatches flagged
+  min_snr_db: 10.0              # Reject clips with SNR below this (dB)
+  max_silence_ratio: 0.4        # Reject clips where silence > this fraction
+  max_clipping_ratio: 0.01      # Reject clips where clipped samples > this fraction
+
+language:
+  # Leave empty to accept all detected languages
+  accepted_languages:
+    - "en"
+    - "hi"
+    - "fr"
+    - "de"
+    - "ar"
+    - "es"
+    - "zh"
+    - "ja"
+    - "pt"
+    - "ru"
+  detect_confidence_threshold: 0.0  # Whisper doesn't expose confidence, kept for future use
+  whisper_model: "base"             # Options: tiny, base, small, medium, large
+
+pipeline:
+  input_dir: "./data/raw"           # Folder containing raw audio files
+  output_dir: "./output"            # Where accepted files / manifest go
+  rejected_dir: "./rejected"        # Where rejected files are moved
+  log_dir: "./logs"                 # Run logs directory
+  manifest_filename: "dataset_manifest.csv"
+  supported_formats:
+    - ".wav"
+    - ".mp3"
+    - ".flac"
+    - ".ogg"
+
+logging:
+  level: "INFO"                     # DEBUG, INFO, WARNING, ERROR
+  write_to_file: true               # Also write logs to file in log_dir
