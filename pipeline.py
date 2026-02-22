@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
 
-import pandas as pd
+import pandas as pd  # noqa: F401  (kept for potential future use)
 from tqdm import tqdm
 
 from audio_analyzer import analyze_audio_file, AudioMetrics
@@ -96,6 +96,7 @@ def run_pipeline(config: dict, dry_run: bool = False) -> PipelineResult:
 
     accepted_languages = lang_cfg.get("accepted_languages", [])
     whisper_model = lang_cfg.get("whisper_model", "base")
+    skip_lang_detect = lang_cfg.get("skip_detection", False)
 
     min_snr = audio_cfg.get("min_snr_db", 10.0)
     max_silence = audio_cfg.get("max_silence_ratio", 0.4)
@@ -122,7 +123,11 @@ def run_pipeline(config: dict, dry_run: bool = False) -> PipelineResult:
         logger.info("[DRY RUN] No files will be moved.")
 
     # --- Load language detector ---
-    detector = WhisperLanguageDetector(model_size=whisper_model)
+    if skip_lang_detect:
+        logger.info("Language detection DISABLED (--no-language-detect). All files tagged as 'unknown'.")
+        detector = None
+    else:
+        detector = WhisperLanguageDetector(model_size=whisper_model)
 
     # --- Process files ---
     records: List[FileRecord] = []
@@ -153,12 +158,15 @@ def run_pipeline(config: dict, dry_run: bool = False) -> PipelineResult:
         record.quality_score = metrics.quality_score
 
         # Language detection
-        lang, confidence = detector.detect_language(str(audio_path))
+        if detector is not None:
+            lang, confidence = detector.detect_language(str(audio_path))
+        else:
+            lang, confidence = "unknown", 0.0
         record.language = lang
         record.lang_confidence = confidence
 
-        # Language filter
-        if not _is_language_accepted(lang, accepted_languages):
+        # Language filter (skip if detection was disabled)
+        if not skip_lang_detect and not _is_language_accepted(lang, accepted_languages):
             metrics.rejection_reasons.append(
                 f"rejected_language ({lang} not in accepted list)"
             )
@@ -169,13 +177,12 @@ def run_pipeline(config: dict, dry_run: bool = False) -> PipelineResult:
             record.rejection_reason = " | ".join(metrics.rejection_reasons)
             result.rejected += 1
             _move_file(audio_path, rejected_dir / filename, dry_run)
-            logger.info(f"  ✗ {filename} → REJECTED: {record.rejection_reason}")
+            logger.info(f"  REJECTED: {filename} | {record.rejection_reason}")
         else:
             record.status = "accepted"
             result.accepted += 1
             logger.info(
-                f"  ✓ {filename} → ACCEPTED [{lang}] "
-                f"score={metrics.quality_score:.3f}"
+                f"  ACCEPTED: {filename} [{lang}] score={metrics.quality_score:.3f}"
             )
 
         records.append(record)

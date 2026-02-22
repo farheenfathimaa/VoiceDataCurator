@@ -52,7 +52,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="VoiceDataCurator",
         description=(
-            "🎙️  Multilingual Speech Quality Analyzer & Dataset Curator\n\n"
+            "VoiceDataCurator - Multilingual Speech Quality Analyzer & Dataset Curator\n\n"
             "Ingest raw audio, run quality checks, detect language, filter "
             "low-quality samples, and export a clean dataset manifest."
         ),
@@ -143,10 +143,10 @@ def main() -> None:
 
     # --- Banner ---
     banner = """
-╔══════════════════════════════════════════════════════╗
-║        🎙️  VoiceDataCurator  v1.0                   ║
-║   Multilingual Speech Quality Analyzer & Curator     ║
-╚══════════════════════════════════════════════════════╝
++====================================================+
+|        VoiceDataCurator  v1.0                      |
+|  Multilingual Speech Quality Analyzer & Curator    |
++====================================================+
 """
     print(banner)
 
@@ -188,13 +188,13 @@ def main() -> None:
     print(f"  {'[DRY RUN] ' if args.dry_run else ''}Run Complete")
     print("=" * 56)
     print(f"  Total files  : {result.total}")
-    print(f"  ✅ Accepted  : {result.accepted}")
-    print(f"  ❌ Rejected  : {result.rejected}")
-    print(f"  ⏱  Duration  : {result.duration_sec}s")
+    print(f"  [ACCEPTED]   : {result.accepted}")
+    print(f"  [REJECTED]   : {result.rejected}")
+    print(f"  Duration     : {result.duration_sec}s")
     if result.manifest_path:
-        print(f"  📄 Manifest  : {result.manifest_path}")
+        print(f"  Manifest     : {result.manifest_path}")
     if result.report_path:
-        print(f"  📝 Report    : {result.report_path}")
+        print(f"  Report       : {result.report_path}")
     print("=" * 56)
     print("\nTo view the dashboard:")
     print("  streamlit run dashboard.py\n")
