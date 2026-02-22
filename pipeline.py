@@ -97,6 +97,7 @@ def run_pipeline(config: dict, dry_run: bool = False) -> PipelineResult:
     accepted_languages = lang_cfg.get("accepted_languages", [])
     whisper_model = lang_cfg.get("whisper_model", "base")
     skip_lang_detect = lang_cfg.get("skip_detection", False)
+    lang_confidence_threshold = lang_cfg.get("detect_confidence_threshold", 0.05)
 
     min_snr = audio_cfg.get("min_snr_db", 10.0)
     max_silence = audio_cfg.get("max_silence_ratio", 0.4)
@@ -128,6 +129,12 @@ def run_pipeline(config: dict, dry_run: bool = False) -> PipelineResult:
         detector = None
     else:
         detector = WhisperLanguageDetector(model_size=whisper_model)
+        if not detector.is_ready:
+            logger.warning(
+                "Whisper not available -- language detection disabled for this run. "
+                "To enable: pip install openai-whisper"
+            )
+            detector = None  # bypasses language filter below too
 
     # --- Process files ---
     records: List[FileRecord] = []
@@ -165,8 +172,14 @@ def run_pipeline(config: dict, dry_run: bool = False) -> PipelineResult:
         record.language = lang
         record.lang_confidence = confidence
 
-        # Language filter (skip if detection was disabled)
-        if not skip_lang_detect and not _is_language_accepted(lang, accepted_languages):
+        # Language filter -- only applied when detection actually ran with sufficient confidence
+        # Skips when: --no-language-detect, Whisper unavailable, or confidence too low
+        # (low/zero confidence typically means Whisper failed to decode the file, e.g. missing ffmpeg)
+        lang_detection_reliable = (
+            detector is not None
+            and confidence >= lang_confidence_threshold
+        )
+        if lang_detection_reliable and not _is_language_accepted(lang, accepted_languages):
             metrics.rejection_reasons.append(
                 f"rejected_language ({lang} not in accepted list)"
             )

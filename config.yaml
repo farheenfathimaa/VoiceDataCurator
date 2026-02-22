@@ -14,6 +14,7 @@ language:
   accepted_languages:
     - "en"
     - "hi"
+    - "mr"    # Marathi
     - "fr"
     - "de"
     - "ar"
@@ -22,7 +23,9 @@ language:
     - "ja"
     - "pt"
     - "ru"
-  detect_confidence_threshold: 0.0  # Whisper doesn't expose confidence, kept for future use
+  # If Whisper returns confidence below this, skip language filtering for that file
+  # (handles cases where ffmpeg is unavailable and detection silently fails)
+  detect_confidence_threshold: 0.05
   whisper_model: "base"             # Options: tiny, base, small, medium, large
 
 pipeline:

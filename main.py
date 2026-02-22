@@ -37,6 +37,13 @@ def setup_logging(verbose: bool, log_dir: Path, write_to_file: bool) -> None:
 
     logging.basicConfig(level=level, format=fmt, datefmt=datefmt, handlers=handlers)
 
+    # Always silence noisy third-party loggers regardless of verbosity level
+    for noisy_lib in [
+        "numba", "numba.core", "librosa", "matplotlib",
+        "urllib3", "filelock", "audioread", "soundfile",
+    ]:
+        logging.getLogger(noisy_lib).setLevel(logging.WARNING)
+
 
 def load_config(config_path: str) -> dict:
     """Load and parse YAML config file."""
