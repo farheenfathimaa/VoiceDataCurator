@@ -1,62 +1,23 @@
 # 🎙️ VoiceDataCurator
 
-<div align="center">
+> **Automated multilingual speech dataset quality analyzer and curator — built in Python.**
 
-**Multilingual Speech Quality Analyzer & Dataset Curator**
-
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
-[![Whisper](https://img.shields.io/badge/OpenAI-Whisper-412991?logo=openai&logoColor=white)](https://github.com/openai/whisper)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-*A production-grade CLI + Streamlit pipeline for cleaning, scoring, and curating raw speech datasets for ML model training*
-
-</div>
-
----
-
-## 📌 Overview
-
-**VoiceDataCurator** is an end-to-end audio dataset quality control and curation tool designed for speech AI teams and researchers. It ingests raw audio files (WAV/MP3), runs automated quality checks, detects the spoken language, scores each sample, filters out low-quality clips, and produces a clean, curated dataset — all with a rich visual dashboard for monitoring.
-
-Whether you're building an ASR model, a TTS system, or a multilingual voice assistant, VoiceDataCurator ensures your training data meets the bar before it ever reaches your model.
+A CLI + Streamlit pipeline that ingests raw audio files, scores each clip on signal quality, detects the spoken language using OpenAI Whisper, filters out low-quality samples, and exports a clean dataset manifest — all without needing ffmpeg installed.
 
 ---
 
 ## ✨ Features
 
-### 🔬 Audio Quality Analyzer
-- **Silence Ratio Detection** — flags clips with excessive silence
-- **Signal-to-Noise Ratio (SNR)** — quantifies background noise levels
-- **Clipping Detection** — identifies audio distortion from recording peaks
-- **Duration Validation** — rejects clips that are too short or too long
-- **Sample Rate Consistency Check** — ensures all files match target sample rate
-
-### 🌍 Language Detection & Tagging
-- Automatic language identification per audio clip using **OpenAI Whisper**
-- Tags each clip with its detected language code (e.g., `en`, `hi`, `fr`, `ar`)
-- Builds a **multilingual-aware dataset** out of the box
-
-### ⚙️ Automated Filtering Pipeline
-- Configurable quality thresholds via `config.yaml`
-  - Min SNR, Max silence %, accepted languages list, duration bounds
-- Low-quality files are moved to a `rejected/` folder automatically
-- Each rejection includes a **reason log** for full auditability
-- `--dry-run` flag shows what *would* be filtered without moving any files
-
-### 📊 Streamlit Dashboard
-- **Language distribution** — interactive pie chart
-- **Quality score histogram** — see the spread of your dataset
-- **Accepted vs Rejected** — live counts and ratios
-- **Average duration per language** — bar chart
-- **Per-file quality report** — sortable, filterable table
-
-### 📦 Export & Reporting
-- Outputs `dataset_manifest.csv` with:
-  - `filename`, `language`, `duration`, `snr`, `silence_ratio`, `quality_score`, `status`, `rejection_reason`
-- Generates a **run report log** with timestamps and pipeline summary
-- Fully reproducible runs with config versioning
+| Feature | Details |
+|---|---|
+| 🔍 **Audio Quality Analysis** | SNR, silence ratio, clipping ratio, duration, sample-rate checks |
+| 🌐 **Language Detection** | OpenAI Whisper via librosa loader — works on MP3/WAV/FLAC without ffmpeg |
+| 📊 **Quality Scoring** | Composite 0–1 score per file for easy ranking and filtering |
+| 🚦 **Smart Filtering** | Configurable thresholds; rejected files moved to a quarantine folder |
+| 📄 **Dataset Manifest** | `dataset_manifest.csv` with all metrics per file, ready for ML pipelines |
+| 📈 **Streamlit Dashboard** | Interactive dark-mode UI — charts, filters, per-file report, CSV export |
+| ⚡ **Dry Run Mode** | Preview what would be accepted/rejected without touching any files |
+| 🐳 **Docker Support** | One-command reproducible environment via `docker-compose` |
 
 ---
 
@@ -64,239 +25,215 @@ Whether you're building an ASR model, a TTS system, or a multilingual voice assi
 
 ```
 VoiceDataCurator/
-├── main.py                  # CLI entrypoint
-├── pipeline.py              # Orchestration logic
-├── audio_analyzer.py        # SNR, silence, clipping, duration checks
-├── language_detector.py     # Whisper-based language detection
-├── dashboard.py             # Streamlit web dashboard
-├── config.yaml              # Quality threshold configuration
-├── requirements.txt         # Python dependencies
-├── Dockerfile               # Docker containerization
-├── docker-compose.yml       # Multi-service compose setup
-├── logs/                    # Pipeline run logs
-├── rejected/                # Files that failed quality checks
-└── output/
-    └── dataset_manifest.csv # Final curated dataset manifest
+├── main.py                # CLI entrypoint (argparse)
+├── pipeline.py            # Core orchestrator
+├── audio_analyzer.py      # SNR, silence, clipping, duration checks
+├── language_detector.py   # Whisper language detection (librosa loader)
+├── dashboard.py           # Streamlit visualization app
+├── config.yaml            # All tunable thresholds
+├── generate_samples.py    # Generate clean multilingual MP3 test clips (gTTS)
+├── generate_bad_samples.py# Generate degraded WAV samples for rejection testing
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+└── data/
+    └── raw/               # Drop your audio files here (.mp3 .wav .flac .ogg)
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### Prerequisites
-- Python 3.9+
-- `ffmpeg` installed and available in PATH (required by Whisper & librosa)
-- Docker (optional, for containerized runs)
-
-### Installation
+### 1. Clone & Install
 
 ```bash
-# Clone the repository
 git clone https://github.com/farheenfathimaa/VoiceDataCurator.git
 cd VoiceDataCurator
-
-# Create and activate a virtual environment
 python -m venv venv
-source venv/bin/activate        # Linux/Mac
-venv\Scripts\activate           # Windows
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
 
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### Configuration
+### 2. Generate Test Audio (optional)
 
-Edit `config.yaml` to set your quality thresholds:
+```bash
+# 30 clean multilingual clips (English, Hindi, Marathi, French, Spanish, German, Japanese, Arabic)
+python generate_samples.py
 
-```yaml
-audio:
-  min_duration_sec: 1.0
-  max_duration_sec: 30.0
-  target_sample_rate: 16000
-  min_snr_db: 10.0
-  max_silence_ratio: 0.4
-  max_clipping_ratio: 0.01
+# 16 intentionally degraded clips to test rejection logic
+python generate_bad_samples.py
+```
 
-language:
-  accepted_languages: ["en", "hi", "fr", "de", "ar", "es"]
-  detect_confidence_threshold: 0.6
+### 3. Run the Pipeline
 
-pipeline:
-  input_dir: "./data/raw"
-  output_dir: "./output"
-  rejected_dir: "./rejected"
-  log_dir: "./logs"
+```bash
+# Full run with Whisper language detection
+python main.py --input ./data/raw --verbose
+
+# Fast run without language detection (audio quality checks only)
+python main.py --input ./data/raw --no-language-detect
+
+# Dry run — preview results without moving any files
+python main.py --input ./data/raw --dry-run
+
+# Custom config
+python main.py --input ./data/raw --config my_config.yaml --whisper-model small
+```
+
+### 4. Launch Dashboard
+
+```bash
+python -m streamlit run dashboard.py
+# Open http://localhost:8501
 ```
 
 ---
 
-## 🖥️ Usage
+## ⚙️ Configuration (`config.yaml`)
 
-### CLI — Run the Pipeline
+```yaml
+audio:
+  min_duration_sec: 1.0        # Reject clips shorter than this
+  max_duration_sec: 30.0       # Reject clips longer than this
+  min_snr_db: 10.0             # Reject clips with SNR below this (dB)
+  max_silence_ratio: 0.4       # Reject clips where >40% is silence
+  max_clipping_ratio: 0.01     # Reject clips where >1% of samples are clipped
+  target_sample_rate: 16000    # Flag clips recorded at wrong sample rate
 
-```bash
-# Standard run
-python main.py --input ./data/raw --output ./output
-
-# Dry run (preview filters without moving files)
-python main.py --input ./data/raw --dry-run
-
-# Specify a custom config file
-python main.py --input ./data/raw --config my_config.yaml
-
-# Verbose logging
-python main.py --input ./data/raw --verbose
+language:
+  whisper_model: "base"        # tiny | base | small | medium | large
+  accepted_languages:          # Empty list = accept all
+    - "en"
+    - "hi"
+    - "mr"
+    - "fr"
+    - "de"
+    - "ar"
+    - "es"
+    - "ja"
+  detect_confidence_threshold: 0.05   # Skip filter if Whisper confidence is too low
 ```
 
-### Streamlit Dashboard
+---
 
-```bash
-streamlit run dashboard.py
+## 🔬 How It Works
+
+```
+data/raw/          Audio files
+    │
+    ▼
+audio_analyzer.py  SNR · Silence · Clipping · Duration · Sample rate
+    │
+    ▼
+language_detector.py  Whisper (loaded via librosa — no ffmpeg required)
+    │
+    ▼
+pipeline.py        Filter · Move rejected · Write manifest
+    │
+    ├── output/dataset_manifest.csv
+    ├── rejected/   (low-quality files)
+    └── logs/       (run reports)
+    │
+    ▼
+dashboard.py       Streamlit interactive visualization
 ```
 
-Open `http://localhost:8501` in your browser to view the interactive dashboard.
+---
+
+## 📊 Dashboard
+
+The Streamlit dashboard (`http://localhost:8501`) shows:
+
+- **Dataset Overview** — total / accepted / rejected counts, accept rate, avg duration, language count
+- **Language Distribution** — donut chart per detected language
+- **Quality Score Distribution** — histogram, accepted vs rejected coloured
+- **Avg Duration per Language** — bar chart
+- **SNR Distribution by Language** — box plot
+- **Per-File Quality Report** — sortable table with all metrics + CSV export
+
+> 📸 *Dashboard screenshots coming soon — run the pipeline and open `http://localhost:8501` to see it live.*
 
 ---
 
 ## 🐳 Docker
 
 ```bash
-# Build the image
-docker build -t voicedatacurator .
+# Run pipeline
+docker-compose run pipeline --input /data/raw
 
-# Run the pipeline
-docker run -v $(pwd)/data:/app/data -v $(pwd)/output:/app/output voicedatacurator
-
-# Run with Docker Compose (pipeline + dashboard)
-docker-compose up
+# Run dashboard (accessible on http://localhost:8501)
+docker-compose up dashboard
 ```
 
 ---
 
-## 📋 Output: `dataset_manifest.csv`
+## 📦 Requirements
 
-| filename | language | duration | snr | silence_ratio | quality_score | status | rejection_reason |
-|---|---|---|---|---|---|---|---|
-| clip_001.wav | en | 4.32 | 22.1 | 0.08 | 0.91 | accepted | |
-| clip_002.wav | hi | 1.5 | 6.3 | 0.61 | 0.34 | rejected | low_snr, high_silence |
-| clip_003.wav | fr | 12.8 | 18.7 | 0.12 | 0.85 | accepted | |
-
----
-
-## 🧰 Tech Stack
-
-| Component | Technology |
+| Package | Purpose |
 |---|---|
-| Audio Processing | `librosa`, `soundfile`, `numpy` |
-| Language Detection | `openai-whisper` |
-| CLI Interface | `argparse`, `tqdm` |
-| Dashboard | `Streamlit`, `Plotly`, `Pandas` |
-| Configuration | `PyYAML` |
-| Logging | Python `logging` module |
-| Containerization | `Docker`, `docker-compose` |
+| `openai-whisper` | Language detection |
+| `librosa` | Audio loading (MP3/WAV/FLAC without ffmpeg) |
+| `soundfile` | WAV read/write |
+| `numpy` | Numerical processing |
+| `pandas` | Manifest CSV handling |
+| `streamlit` | Dashboard UI |
+| `plotly` | Interactive charts |
+| `tqdm` | Progress bars |
+| `pyyaml` | Config parsing |
+| `gTTS` | Test audio generation |
 
 ---
 
-## 🛠️ Core Modules
+## 📝 Output Files
 
-### `audio_analyzer.py`
-Provides functions for:
-- `compute_snr(audio, sr)` — estimates signal-to-noise ratio
-- `compute_silence_ratio(audio, sr)` — measures proportion of silent frames
-- `detect_clipping(audio)` — checks for amplitude clipping
-- `validate_duration(audio, sr, min_dur, max_dur)` — enforces duration bounds
-- `check_sample_rate(sr, target_sr)` — validates sample rate consistency
-
-### `language_detector.py`
-- Loads Whisper model (configurable size: `tiny`, `base`, `small`, `medium`)
-- `detect_language(audio_path)` → returns `(language_code, confidence)`
-- Caches model in memory across batch processing for speed
-
-### `pipeline.py`
-- Orchestrates the full ingestion → analysis → filtering → export flow
-- Handles file I/O, manifest building, and rejection logging
-- Supports `dry_run` mode without side effects
-
-### `dashboard.py`
-- Reads `dataset_manifest.csv` and renders real-time Streamlit charts
-- Interactive filters for language, status, and quality score range
+| File | Description |
+|---|---|
+| `output/dataset_manifest.csv` | Per-file metrics: language, SNR, silence ratio, quality score, status |
+| `logs/run_report_<timestamp>.txt` | Human-readable summary with rejection breakdown |
+| `rejected/<filename>` | Audio files that failed quality or language checks |
 
 ---
 
-## 📊 Example Dashboard
-
-The Streamlit dashboard provides at-a-glance visibility into your dataset:
-
-- 🥧 **Language distribution** pie chart
-- 📈 **Quality score** histogram
-- ✅ **Accepted vs ❌ Rejected** count cards
-- ⏱️ **Average duration** per language bar chart
-- 📋 **Per-file report** table with sort & filter
-
----
-
-## 🔄 Pipeline Flow
+## 🛠️ CLI Reference
 
 ```
-Raw Audio Files (WAV/MP3)
-        │
-        ▼
-┌───────────────────┐
-│  Audio Analyzer   │  ← SNR, silence, clipping, duration, sample rate
-└───────┬───────────┘
-        │
-        ▼
-┌───────────────────┐
-│ Language Detector │  ← Whisper transcription → language tag
-└───────┬───────────┘
-        │
-        ▼
-┌───────────────────┐
-│ Filtering Pipeline│  ← Apply thresholds from config.yaml
-└───┬───────────────┘
-    │
-    ├──── ✅ Accepted → output/
-    └──── ❌ Rejected → rejected/ (with reason log)
-        │
-        ▼
-┌───────────────────┐
-│ dataset_manifest  │  ← CSV export with all metadata
-│    .csv           │
-└───────────────────┘
-        │
-        ▼
-┌───────────────────┐
-│ Streamlit Dashboard│ ← Visual stats & per-file report
-└───────────────────┘
+python main.py [OPTIONS]
+
+Options:
+  --input,  -i   Path to folder with raw audio files
+  --output, -o   Output directory (default: ./output)
+  --rejected     Directory for rejected files (default: ./rejected)
+  --config, -c   Path to config YAML (default: config.yaml)
+  --dry-run      Preview without moving any files
+  --verbose, -v  Debug-level logging
+  --whisper-model  Whisper model size: tiny|base|small|medium|large
+  --no-language-detect  Skip Whisper (audio quality checks only, much faster)
 ```
 
 ---
 
-## 🤝 Contributing
+## 💡 Rejection Reasons
 
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+| Code | Meaning |
+|---|---|
+| `too_short` | Clip under `min_duration_sec` |
+| `too_long` | Clip over `max_duration_sec` |
+| `low_snr` | SNR below `min_snr_db` |
+| `high_silence` | Silence above `max_silence_ratio` |
+| `clipping` | Clipping above `max_clipping_ratio` |
+| `wrong_sample_rate` | Sample rate doesn't match `target_sample_rate` |
+| `rejected_language` | Detected language not in `accepted_languages` |
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-## 👤 Author
-
-**Farheen Fathima**
-- GitHub: [@farheenfathimaa](https://github.com/farheenfathimaa)
-
----
-
-<div align="center">
-  <i>Built for speech AI teams who care about data quality as much as model quality.</i>
-</div>
+<p align="center">Built with Python · OpenAI Whisper · librosa · Streamlit · Plotly</p>

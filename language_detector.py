@@ -3,13 +3,13 @@ language_detector.py
 --------------------
 Detects the spoken language in an audio clip using OpenAI Whisper.
 
-The WhisperLanguageDetector class loads the model once and reuses it
-across all files in a batch to avoid repeated model initialization overhead.
+Audio is loaded via librosa (no ffmpeg required) so MP3/WAV/FLAC all work
+on systems without ffmpeg in PATH.
 """
 
 import logging
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +29,11 @@ class WhisperLanguageDetector:
     """
     Detects spoken language from audio files using OpenAI Whisper.
 
+    Loads audio via librosa so ffmpeg is NOT required for MP3/WAV/FLAC decoding.
+
     Usage:
         detector = WhisperLanguageDetector(model_size="base")
-        language, confidence = detector.detect_language("path/to/audio.wav")
+        language, confidence = detector.detect_language("path/to/audio.mp3")
     """
 
     def __init__(self, model_size: str = "base"):
@@ -65,8 +67,8 @@ class WhisperLanguageDetector:
         """
         Detect the spoken language of an audio file.
 
-        Whisper processes a 30-second mel spectrogram of the audio and
-        returns log-probabilities for each language. We pick the argmax.
+        Uses librosa to load audio (no ffmpeg required), then feeds the
+        mel spectrogram to Whisper's language classifier.
 
         Returns:
             (language_code, confidence)
@@ -82,22 +84,33 @@ class WhisperLanguageDetector:
             return "unknown", 0.0
 
         try:
-            # Load and pad/trim audio to 30 seconds as Whisper expects
-            audio = whisper.load_audio(filepath)
+            import numpy as np
+            import librosa
+
+            # Load audio via librosa — handles MP3/WAV/FLAC without ffmpeg
+            # Automatically resampled to Whisper's required 16 kHz
+            audio, _ = librosa.load(
+                filepath,
+                sr=whisper.audio.SAMPLE_RATE,  # 16000 Hz
+                mono=True,
+            )
+            audio = audio.astype(np.float32)
+
+            # Pad or trim to exactly 30 seconds (Whisper's fixed context window)
             audio = whisper.pad_or_trim(audio)
 
-            # Compute mel spectrogram
+            # Compute log-mel spectrogram on the model's device (CPU or GPU)
             mel = whisper.log_mel_spectrogram(audio).to(self._model.device)
 
-            # Detect language
+            # Detect language — returns (best_token, probs_dict)
             _, probs = self._model.detect_language(mel)
 
-            # Best language by probability
+            # Pick the language with the highest probability
             detected_lang = max(probs, key=probs.get)
             confidence = float(probs[detected_lang])
 
             logger.debug(
-                f"[detect_language] {Path(filepath).name} → {detected_lang} "
+                f"[detect_language] {Path(filepath).name} -> {detected_lang} "
                 f"({confidence:.2%})"
             )
             return detected_lang, round(confidence, 4)

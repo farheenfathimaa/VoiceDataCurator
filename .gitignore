@@ -1,71 +1,77 @@
-# Python
+# ─── Python ───────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
+*.pyo
+*.pyd
+.Python
 *.egg
 *.egg-info/
 dist/
 build/
-*.whl
-.Python
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.mypy_cache/
-.ruff_cache/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
 
-# Virtual environments
-.env
-.venv
-env/
+# ─── Virtual Environments ─────────────────────────────────────────────────────
 venv/
+.venv/
+env/
 ENV/
-env.bak/
-venv.bak/
+.env
 
-# Project runtime directories
-data/
+# ─── Project Runtime Directories ─────────────────────────────────────────────
+# These are generated at run time — do not commit
 output/
 rejected/
 logs/
-!data/.gitkeep
-!output/.gitkeep
-!rejected/.gitkeep
-!logs/.gitkeep
 
-# Whisper model cache
-~/.cache/whisper/
+# ─── Audio Data Files ────────────────────────────────────────────────────────
+# Keep placeholder .gitkeep files but ignore actual audio and generated CSVs
+data/raw/*.mp3
+data/raw/*.wav
+data/raw/*.flac
+data/raw/*.ogg
+data/raw/*.m4a
+data/raw/*.csv
+data/**/*.mp3
+data/**/*.wav
+data/**/*.flac
+data/**/*.ogg
+data/**/*.m4a
+data/**/*.csv
+
+# ─── Whisper / ML Model Cache ─────────────────────────────────────────────────
 *.pt
+models/
+.cache/
 
-# Streamlit
-.streamlit/secrets.toml
+# ─── Jupyter ──────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
 
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# IDEs
+# ─── IDEs ─────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
 
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
+# ─── OS Generated ─────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
 
-# Docker
-.dockerignore
-
-# Distribution / packaging
-htmlcov/
-.hypothesis/
+# ─── Secrets / Config Overrides ───────────────────────────────────────────────
+.env.local
+.env.*.local
+secrets.yaml
