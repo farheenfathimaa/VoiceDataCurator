@@ -2,7 +2,7 @@
 
 > **Automated multilingual speech dataset quality analyzer and curator — built in Python.**
 
-A CLI + Streamlit pipeline that ingests raw audio files, scores each clip on signal quality, detects the spoken language using OpenAI Whisper, filters out low-quality samples, and exports a clean dataset manifest — all without needing ffmpeg installed.
+A CLI + Streamlit pipeline that ingests raw audio files, scores each clip on signal quality, detects the spoken language using OpenAI Whisper, filters out low-quality samples, and exports a clean dataset manifest — all with ffmpeg installed.
 
 ---
 
