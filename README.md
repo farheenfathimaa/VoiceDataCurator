@@ -155,7 +155,11 @@ The Streamlit dashboard (`http://localhost:8501`) shows:
 - **SNR Distribution by Language** — box plot
 - **Per-File Quality Report** — sortable table with all metrics + CSV export
 
-> 📸 *Dashboard screenshots coming soon — run the pipeline and open `http://localhost:8501` to see it live.*
+![Dataset Overview — language distribution donut and quality score histogram](docs/screenshots/overview.png)
+
+![Average Duration per Language and SNR Distribution by Language charts](docs/screenshots/charts.png)
+
+![Per-File Quality Report sortable table with all metrics](docs/screenshots/table.png)
 
 ---
 
