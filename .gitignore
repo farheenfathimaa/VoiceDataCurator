@@ -1,4 +1,4 @@
-# ─── Python ───────────────────────────────────────────────────────────────────
+# == Python ==
 __pycache__/
 *.py[cod]
 *$py.class
@@ -18,21 +18,21 @@ develop-eggs/
 lib/
 lib64/
 
-# ─── Virtual Environments ─────────────────────────────────────────────────────
+# == Virtual Environments ==
 venv/
 .venv/
 env/
 ENV/
 .env
 
-# ─── Project Runtime Directories ─────────────────────────────────────────────
-# These are generated at run time — do not commit
+# == Project Runtime Directories ==
+# Generated at run time -- do not commit
 output/
 rejected/
 logs/
 
-# ─── Audio Data Files ────────────────────────────────────────────────────────
-# Keep placeholder .gitkeep files but ignore actual audio and generated CSVs
+# == Audio Data Files ==
+# Keep .gitkeep placeholders but ignore actual audio files and generated CSVs
 data/raw/*.mp3
 data/raw/*.wav
 data/raw/*.flac
@@ -46,22 +46,22 @@ data/**/*.ogg
 data/**/*.m4a
 data/**/*.csv
 
-# ─── Whisper / ML Model Cache ─────────────────────────────────────────────────
+# == Whisper / ML Model Cache ==
 *.pt
 models/
 .cache/
 
-# ─── Jupyter ──────────────────────────────────────────────────────────────────
+# == Jupyter ==
 .ipynb_checkpoints/
 *.ipynb
 
-# ─── IDEs ─────────────────────────────────────────────────────────────────────
+# == IDEs ==
 .vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
 
-# ─── OS Generated ─────────────────────────────────────────────────────────────
+# == OS Generated ==
 .DS_Store
 .DS_Store?
 ._*
@@ -71,7 +71,7 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# ─── Secrets / Config Overrides ───────────────────────────────────────────────
+# == Secrets / Config Overrides ==
 .env.local
 .env.*.local
 secrets.yaml
