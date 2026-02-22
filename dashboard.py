@@ -53,8 +53,8 @@ st.markdown("""
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 @st.cache_data
-def load_manifest(path: str) -> pd.DataFrame:
-    """Load and parse dataset_manifest.csv."""
+def load_manifest(path: str, _mtime: float) -> pd.DataFrame:
+    """Load and parse dataset_manifest.csv. _mtime is used as a cache-buster."""
     df = pd.read_csv(path)
     # Ensure expected columns have correct types
     numeric_cols = ["duration", "snr_db", "silence_ratio", "clipping_ratio", "quality_score"]
@@ -135,7 +135,8 @@ if not Path(selected_file).exists():
     )
     st.stop()
 
-df_full = load_manifest(selected_file)
+_manifest_mtime = Path(selected_file).stat().st_mtime
+df_full = load_manifest(selected_file, _mtime=_manifest_mtime)
 
 # Apply filters
 status_filter = []
