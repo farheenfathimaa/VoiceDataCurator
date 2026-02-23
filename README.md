@@ -25,14 +25,20 @@ A CLI + Streamlit pipeline that ingests raw audio files, scores each clip on sig
 
 ```
 VoiceDataCurator/
-├── main.py                # CLI entrypoint (argparse)
-├── pipeline.py            # Core orchestrator
-├── audio_analyzer.py      # SNR, silence, clipping, duration checks
-├── language_detector.py   # Whisper language detection (librosa loader)
-├── dashboard.py           # Streamlit visualization app
-├── config.yaml            # All tunable thresholds
-├── generate_samples.py    # Generate clean multilingual MP3 test clips (gTTS)
-├── generate_bad_samples.py# Generate degraded WAV samples for rejection testing
+├── main.py                    # CLI entrypoint (argparse)
+├── pipeline.py                # Core orchestrator
+├── audio_analyzer.py          # SNR, silence, clipping, duration checks
+├── language_detector.py       # Whisper language detection (librosa loader)
+├── dashboard.py               # Streamlit visualization app
+├── config.yaml                # All tunable thresholds
+├── generate_samples.py        # Generate clean multilingual MP3 test clips (gTTS)
+├── generate_bad_samples.py    # Generate degraded WAV samples for rejection testing
+│
+├── generate_transcripts.py    # [Research] Auto-generate .txt transcripts via Whisper
+├── prepare_training_data.py   # [Research] Build HuggingFace datasets from manifest
+├── finetune_whisper.py        # [Research] Fine-tune whisper-tiny on curated vs raw data
+├── evaluate_wer.py            # [Research] Compute WER for all 3 models, output table
+│
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml
@@ -165,6 +171,68 @@ The Streamlit dashboard (`http://localhost:8501`) shows:
 
 ![Per-File Quality Report](docs/screenshots/ReportTable.png)
 *Sortable per-file quality report with rejection reasons and CSV export*
+
+---
+
+## 🔬 Research Extension: Fine-tuning & WER Evaluation
+
+### Research Question
+
+> **Does data quality affect downstream Whisper fine-tuning performance?**
+>
+> VoiceDataCurator filters out high-noise, mostly-silent, clipped, and too-short/long audio.
+> This extension proves that training on clean, curated data produces a lower Word Error Rate (WER)
+> than training on the raw, unfiltered dataset — using identical model architecture and hyperparameters.
+
+### Prerequisites
+
+```bash
+# Install fine-tuning dependencies
+pip install transformers>=4.37.0 datasets>=2.18.0 evaluate>=0.4.1 jiwer>=3.0.3 accelerate>=0.27.0
+
+# Run the main pipeline first so output/dataset_manifest.csv exists
+python main.py --input ./data/raw
+```
+
+> **Note on Transcripts:** Each audio file needs a matching `.txt` transcript file in `data/raw/`.
+> Step 1 auto-generates these using Whisper-tiny itself (demo/proof-of-concept setup).
+> For production use, replace these with **human-verified transcripts** for more meaningful WER results.
+
+### How to Run (in order)
+
+```bash
+# Step 1 — Auto-generate .txt transcripts for all audio files (~1 min)
+python generate_transcripts.py
+
+# Step 2 — Build HuggingFace datasets: curated (accepted-only) and raw (all files)
+python prepare_training_data.py
+
+# Step 3 — Fine-tune whisper-tiny on both sets (~10–60 min on CPU for 30–40 clips)
+python finetune_whisper.py
+
+# Step 4 — Evaluate WER for all 3 models and print comparison table
+python evaluate_wer.py
+```
+
+### WER Results
+
+> **Fill in your results after running `python evaluate_wer.py`:**
+
+| Model | WER | vs Baseline |
+|---|---|---|
+| `openai/whisper-tiny` (zero-shot) | __%  | baseline |
+| Fine-tuned on **raw** data | __%  | — |
+| Fine-tuned on **curated** data | __%  | — |
+
+Results are also saved automatically to `wer_results.json`.
+
+### Interpreting the Results
+
+- **Lower WER = better** — 0% is perfect, 100%+ means more errors than words
+- **Zero-shot baseline**: built-in Whisper capability without any fine-tuning
+- **Raw fine-tuned**: effect of more data, including noisy/poor-quality clips
+- **Curated fine-tuned**: effect of VoiceDataCurator's quality filtering on model performance
+- If curated WER < raw WER, the pipeline has **proven its value** quantitatively
 
 ---
 

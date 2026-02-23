@@ -30,3 +30,11 @@ torch>=2.1.0
 
 # Optional: for faster audio loading
 audioread>=3.0.0
+
+# == whisper_finetuner module (fine-tuning + WER evaluation) ==
+# Install these only if you want to run the research extension scripts
+transformers>=4.37.0        # WhisperForConditionalGeneration, Seq2SeqTrainer
+datasets>=2.18.0            # HuggingFace Dataset, load_from_disk
+evaluate>=0.4.1             # evaluate.load("wer")
+jiwer>=3.0.3                # WER backend used by evaluate
+accelerate>=0.27.0          # Required by Seq2SeqTrainer (HuggingFace Trainer)
