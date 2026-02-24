@@ -75,3 +75,10 @@ desktop.ini
 .env.local
 .env.*.local
 secrets.yaml
+
+# == Whisper Fine-tuning Extension ==
+whisper-finetuned-curated/
+whisper-finetuned-raw/
+whisper_finetuner/
+wer_results.json
+*.txt
