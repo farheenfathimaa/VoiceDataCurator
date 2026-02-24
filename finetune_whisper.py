@@ -166,9 +166,15 @@ def run_finetuning(
     # Disable caching during training (incompatible with gradient checkpointing)
     model.config.use_cache = False
 
+    # --- Generation Config (transformers v5.x handles these here) ---
     # Tell model to predict transcriptions (not translations)
-    model.config.forced_decoder_ids = None
-    model.config.suppress_tokens = []
+    if model.generation_config is not None:
+        model.generation_config.forced_decoder_ids = None
+        model.generation_config.suppress_tokens = []
+    else:
+        # Fallback for older transformers if generation_config is missing
+        model.config.forced_decoder_ids = None
+        model.config.suppress_tokens = []
 
     # --- Preprocess dataset: audio -> features, text -> tokens ---
     logger.info("Preprocessing dataset (extracting mel features + tokenizing)...")
@@ -223,7 +229,7 @@ def run_finetuning(
         args=training_args,
         train_dataset=train_dataset,
         data_collator=data_collator,
-        tokenizer=processor.feature_extractor,
+        processing_class=processor.tokenizer,
     )
 
     # --- Train ---

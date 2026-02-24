@@ -25,8 +25,8 @@ plotly>=5.18.0
 tqdm>=4.66.0
 pyyaml>=6.0.1
 
-# Torch (required by Whisper — CPU version; swap for CUDA if GPU available)
-torch>=2.1.0
+# Torch (CPU version for Windows stability; swap for CUDA if GPU available)
+torch>=2.1.0,<2.6.0
 
 # Optional: for faster audio loading
 audioread>=3.0.0

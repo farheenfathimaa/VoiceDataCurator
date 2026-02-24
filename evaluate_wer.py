@@ -65,14 +65,15 @@ def transcribe_dataset(
     label = Path(model_path).name if is_local else model_path
     logger.info(f"Loading model: {label}")
 
+    # Load model
     processor = WhisperProcessor.from_pretrained(model_path)
     model = WhisperForConditionalGeneration.from_pretrained(model_path)
     model.eval()
 
-    # Use greedy decoding for deterministic, fast CPU inference
-    model.config.forced_decoder_ids = processor.get_decoder_prompt_ids(
-        language="english", task="transcribe"
-    )
+    # Move to device if available
+    import torch
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.to(device)
 
     predictions = []
     references = []
@@ -86,12 +87,16 @@ def transcribe_dataset(
             audio,
             sampling_rate=example["sampling_rate"],
             return_tensors="pt",
-        ).input_features  # shape: [1, 80, 3000]
+        ).input_features.to(device)
 
-        # Generate transcription (greedy, no beam search — fastest for demo)
-        import torch
+        # Generate transcription
+        # We pass language and task directly to generate() or use generation_config
         with torch.no_grad():
-            predicted_ids = model.generate(input_features)
+            predicted_ids = model.generate(
+                input_features,
+                language="english",
+                task="transcribe",
+            )
 
         # Decode tokens to text
         predicted_text = processor.tokenizer.batch_decode(
